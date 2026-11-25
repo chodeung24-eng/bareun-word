@@ -96,6 +96,20 @@
                   font-family: var(--font-en); font-weight: 700; font-size: 64px; color: var(--green);
                   text-shadow: 0 4px 14px rgba(47, 163, 125, 0.35); }
     .float-gain span { display: block; animation: floatUp 0.9s ease-out forwards; }
+    /* ---------- 골든 타임 ---------- */
+    .golden-band { margin-top: 12px; padding: 10px 14px; border-radius: 18px; text-align: center; font-size: 21px;
+                   color: #4A3300; background: linear-gradient(180deg, #FFE7A8, #F5B841); animation: glow 1.4s infinite; }
+    /* ---------- 미스터리 상자 ---------- */
+    .mystery { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center;
+               background: rgba(255, 246, 225, 0.82); overflow: hidden; }
+    .mystery .rays { position: absolute; width: 180vmax; height: 180vmax; left: 50%; top: 50%; margin: -90vmax 0 0 -90vmax;
+                     background: repeating-conic-gradient(rgba(255, 214, 120, 0.45) 0deg 10deg, rgba(255, 255, 255, 0) 10deg 20deg);
+                     animation: spin 9s linear infinite; }
+    .mystery .box { position: relative; padding: 26px 34px 28px; text-align: center; min-width: 270px; }
+    .mystery .gift { width: 120px; height: 120px; }
+    .mystery .t1 { font-size: 24px; margin-top: 6px; }
+    .mystery .plus { font-family: var(--font-en); font-weight: 700; font-size: 96px; line-height: 1.05; color: var(--coral); }
+    .mystery .t2 { font-size: 20px; }
     .time-up { margin-top: 18px; padding: 22px 16px; text-align: center; font-size: 24px; line-height: 1.5; }
   </style>
 </head>
@@ -149,6 +163,7 @@
         <span class="q-time" id="qTime">00:00</span>
       </div>
       <div class="progress" id="progress"><div id="progressBar"></div></div>
+      <div class="golden-band hidden" id="goldenBand">⚡ 골든 타임! 정답 2배</div>
 
       <div class="glass q-card" id="qCard">
         <span class="pill q-label" id="qLabel">준비 중</span>
@@ -180,6 +195,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
   <script src="config.js"></script>
   <script src="common.js"></script>
   <script>
@@ -337,6 +353,35 @@
     function stopPlay() {
       clearInterval(playTimer);
       playTimer = null;
+      document.body.classList.remove('golden');
+    }
+
+    // 미스터리 상자: 정답 + 보너스가 나오면 1.6초 동안
+    const GIFT_SVG = `<svg class="gift" viewBox="0 0 120 120" aria-hidden="true">
+      <rect x="22" y="58" width="76" height="50" rx="8" fill="#F08A9B"/>
+      <rect x="54" y="58" width="12" height="50" fill="#F5B841"/>
+      <g transform="rotate(-18 24 46)"><rect x="16" y="38" width="88" height="20" rx="6" fill="#E85C7A"/>
+      <rect x="54" y="38" width="12" height="20" fill="#F5B841"/></g>
+      <path d="M60 40 C46 20 30 26 38 36 C42 41 52 40 60 40 Z" fill="#F5B841"/>
+      <path d="M60 40 C74 18 92 26 82 36 C78 41 68 40 60 40 Z" fill="#F5B841"/>
+      <circle cx="40" cy="20" r="4" fill="#8B6FD6"/><circle cx="88" cy="14" r="3" fill="#5CC7A8"/><circle cx="98" cy="40" r="3.5" fill="#6FB6F0"/>
+    </svg>`;
+    async function showMystery(n) {
+      const giftBox = el('div');
+      giftBox.innerHTML = GIFT_SVG;       // 우리가 만든 그림만 넣음 (사용자 글자 아님)
+      const layer = el('div', { class: 'mystery', role: 'status' },
+        el('div', { class: 'rays' }),
+        el('div', { class: 'glass box pop' },
+          giftBox,
+          el('div', { class: 't1' }, '미스터리 상자가 열렸어요!'),
+          el('div', { class: 'plus' }, '+' + n),
+          el('div', { class: 't2 muted' }, '보너스 점수')));
+      document.body.append(layer);
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 90, spread: 80, startVelocity: 38, origin: { y: 0.55 }, zIndex: 80 });
+      }
+      await wait(1600);
+      layer.remove();
     }
 
     function playTick() {
@@ -347,6 +392,9 @@
       $('qTime').classList.toggle('hurry', hurry);
       $('progress').classList.toggle('hurry', hurry);
       $('progressBar').style.width = (Math.max(0, Math.min(1, left / currentRoom.duration_sec)) * 100) + '%';
+      const golden = left > 0 && currentRoom.golden_until && new Date(currentRoom.golden_until).getTime() > serverNow();
+      $('goldenBand').classList.toggle('hidden', !golden);
+      document.body.classList.toggle('golden', !!golden);
       if (left <= 0 && !timeOver) {
         timeOver = true;
         lockOptions();
@@ -418,9 +466,10 @@
 
       if (r.result === 'correct') {
         picked.classList.add('is-correct');
-        floatGain(r.gain + (r.bonus || 0));
+        floatGain(r.gain);
         $('playScore').textContent = String(r.score);
         await wait(650);
+        if (r.bonus > 0 && !timeOver) await showMystery(r.bonus);
         drawQuestion(r.next);
       } else if (r.result === 'wrong') {
         picked.classList.add('is-wrong', 'shake');

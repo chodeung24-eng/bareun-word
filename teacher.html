@@ -135,6 +135,46 @@
     .others { max-width: 980px; margin: 18px auto 0; padding: 14px 24px; }
     .others .rank-list li { font-size: 19px; padding: 6px; }
 
+    /* ---------- 재미 장치 ---------- */
+    .tool-btn { height: 60px; padding: 0 20px; font-size: 20px; }
+    .game-grid { display: grid; grid-template-columns: 1fr 330px; gap: 18px; margin-top: 14px; align-items: start; }
+    .game-grid .race-card { margin-top: 0; position: relative; }
+    .race-card.blinded .race { filter: blur(14px) saturate(0.6); }
+    .blind-cover { position: absolute; inset: 60px 20px 20px; display: flex; flex-direction: column; align-items: center;
+                   justify-content: center; text-align: center; gap: 10px; padding: 30px; z-index: 5; }
+    .blind-cover .t1 { font-size: 40px; color: var(--violet-deep); }
+    .blind-cover .t2 { font-size: 22px; }
+    .golden-banner { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 30;
+                     padding: 12px 34px; border-radius: 999px; font-size: 30px; color: #4A3300;
+                     background: linear-gradient(180deg, #FFE7A8, #F5B841); box-shadow: 0 10px 30px rgba(245, 184, 65, 0.5);
+                     animation: glow 1.4s infinite; }
+    .side { display: flex; flex-direction: column; gap: 16px; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }
+    .stat { background: rgba(255, 255, 255, 0.55); border-radius: 18px; padding: 12px 12px 10px; min-height: 92px; }
+    .stat .k { font-size: 15px; }
+    .stat .v { font-family: var(--font-en); font-weight: 700; font-size: 32px; color: var(--violet-deep); line-height: 1.2; }
+    .stat .v.ko { font-family: var(--font-ko); font-weight: 400; font-size: 22px; }
+    .stat .s { font-size: 14px; }
+    .news { padding: 16px 18px; min-height: 300px; }
+    .news h3 { font-size: 20px; margin-bottom: 10px; }
+    .news ul { list-style: none; margin: 0; padding: 0; }
+    .news li { padding: 9px 4px; font-size: 18px; border-bottom: 1.5px dashed rgba(139, 111, 214, 0.2); }
+    .news li.gold { color: #9A6700; }
+    .news li.up { color: var(--green); }
+    .lane .badge { font-family: var(--font-ko); }
+    .lane .badge.gold { color: #9A6700; background: linear-gradient(180deg, #FFF1C9, #FFD978); border-radius: 999px;
+                        padding: 4px 10px; animation: glow 1s infinite; }
+    .lane .badge.up { color: var(--green); font-family: var(--font-en); font-weight: 700; font-size: 20px; }
+    .hard-card { max-width: 980px; margin: 22px auto 0; padding: 18px 26px; }
+    .hard-card h2 { font-size: 24px; margin-bottom: 10px; }
+    .hard-row { display: grid; grid-template-columns: 34px 170px 130px 110px 1fr; align-items: center; gap: 10px;
+                padding: 10px 4px; font-size: 20px; border-bottom: 1.5px dashed rgba(139, 111, 214, 0.2); }
+    .hard-row:last-child { border-bottom: 0; }
+    .hard-row .no { font-family: var(--font-en); font-weight: 700; color: var(--violet-deep); }
+    .hard-row .right { color: var(--green); }
+    .hard-row .wrong { color: var(--coral); text-decoration: line-through; }
+    .hard-row .why { font-size: 16px; }
+
     /* ---------- 결과 ---------- */
     .result-head { text-align: center; margin-top: 10px; }
     .result-head h1 { font-size: 54px; color: var(--violet-deep); }
@@ -177,6 +217,7 @@
           <div class="opt-block">
             <h3>재미 장치</h3>
             <label class="check"><input type="checkbox" id="bonusOn" checked> 미스터리 상자</label>
+            <label class="check" style="margin-top:10px"><input type="checkbox" id="autoBlind" checked> 마지막 30초 블라인드</label>
           </div>
           <p class="muted" id="createHint" style="font-size:16px;margin:0 0 10px"></p>
           <button type="button" class="jelly btn-violet" id="createBtn">방 만들기</button>
@@ -246,12 +287,33 @@
           </svg>
           <div class="clock" id="clock" aria-live="off">00:00</div>
         </div>
+        <button type="button" class="jelly btn-amber tool-btn" id="goldenBtn">⚡ 골든 타임</button>
+        <button type="button" class="jelly btn-white tool-btn" id="blindBtn">블라인드</button>
         <button type="button" class="jelly btn-pink" id="endBtn">게임 종료</button>
       </div>
+      <div class="golden-banner hidden" id="goldenBanner"></div>
 
-      <div class="glass race-card">
-        <h2>실시간 레이스</h2>
-        <div class="race" id="race"></div>
+      <div class="game-grid">
+        <div class="glass race-card" id="raceCard">
+          <h2>실시간 레이스</h2>
+          <div class="race" id="race"></div>
+          <div class="glass blind-cover hidden" id="blindCover">
+            <div class="t1">🙈 순위 비공개!</div>
+            <div class="t2">누가 1등일까요? 끝까지 풀어 보세요</div>
+          </div>
+        </div>
+        <aside class="side">
+          <div class="glass stats">
+            <div class="stat"><div class="k muted">전체 정답률</div><div class="v" id="stRate">-</div></div>
+            <div class="stat"><div class="k muted">열린 상자</div><div class="v" id="stBox">0</div></div>
+            <div class="stat"><div class="k muted">푼 문제 합계</div><div class="v" id="stSolved">0</div></div>
+            <div class="stat"><div class="k muted">어려운 문항</div><div class="v ko" id="stHard">-</div><div class="s muted" id="stHardSub"></div></div>
+          </div>
+          <div class="glass news">
+            <h3>📣 방금 일어난 일</h3>
+            <ul id="newsList"><li class="muted">아직 소식이 없어요</li></ul>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -266,6 +328,10 @@
       <div class="glass others hidden" id="othersCard">
         <ol class="rank-list" id="resultList"></ol>
       </div>
+      <div class="glass hard-card hidden" id="hardCard">
+        <h2>🔍 오늘 가장 어려웠던 문항 TOP 3 · 함께 복습해요</h2>
+        <div id="hardList"></div>
+      </div>
       <div class="result-actions">
         <button type="button" class="jelly btn-white" id="wipeBtn">학생 기록 지우기</button>
         <button type="button" class="jelly btn-violet" id="newGameBtn">새 게임 만들기</button>
@@ -277,6 +343,7 @@
   <script src="config.js"></script>
   <script src="common.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
   <script>
     // ===================================================================
     // 바른말 탐정단 · 선생님 화면
@@ -375,7 +442,7 @@
           p_duration: duration,
           p_bonus: $('bonusOn').checked
         });
-        host = { room_id: r.room_id, code: r.code, host_secret: r.host_secret };
+        host = { room_id: r.room_id, code: r.code, host_secret: r.host_secret, autoBlind: $('autoBlind').checked, autoBlindDone: false };
         saveHost(host);
         await enterRoom();
       } catch (e) {
@@ -419,8 +486,10 @@
         startTicking();
       } else {
         stopTicking();
+        document.body.classList.remove('golden');
         drawResult();
         show('result');
+        celebrate();
       }
     }
 
@@ -520,6 +589,8 @@
     function drawGame() {
       $('gameMeta').textContent = `국어 · 방 번호 ${room.code} · ${players.length}명 참여 중`;
       drawRace();
+      drawBlind();
+      drawStats();
       tick();
     }
 
@@ -528,6 +599,118 @@
     const LANE_H = 54;
     const SHOW_MAX = 12;
     const lanes = new Map();       // player id → { node, rk, fill, pts, badge, rank }
+    let prevSnap = new Map();      // 직전 점수 (소식·배지를 만들 때 비교)
+    let news = [];
+
+    function showBadge(lane, text, kind) {
+      clearTimeout(lane.badgeTimer);
+      lane.badge.textContent = text;
+      lane.badge.className = 'badge ' + kind;
+      lane.badgeTimer = setTimeout(() => { lane.badge.textContent = ''; lane.badge.className = 'badge'; }, 3500);
+    }
+
+    function addNews(text, kind) {
+      news.unshift({ text, kind });
+      news = news.slice(0, 5);
+      $('newsList').replaceChildren(...news.map((n, i) => el('li', { class: n.kind + (i === 0 ? ' pop' : '') }, n.text)));
+    }
+
+    // ---------------- 통계 (answers 는 10초마다 읽기) ----------------
+    let answers = [];
+    let answersTimer = null;
+
+    async function fetchAnswers() {
+      const { data, error } = await db.from('answers').select('*').eq('room_id', host.room_id);
+      if (!error) answers = data || [];
+    }
+
+    function hardestWords(k, minTries) {
+      const m = new Map();
+      for (const a of answers) {
+        const x = m.get(a.word_id) || { tries: 0, ok: 0 };
+        x.tries += 1;
+        if (a.is_correct) x.ok += 1;
+        m.set(a.word_id, x);
+      }
+      return [...m].map(([id, x]) => ({ w: words.find((w) => w.id === id), tries: x.tries, rate: x.ok / x.tries }))
+        .filter((x) => x.w && x.tries >= minTries && x.rate < 1)   // 모두 맞힌 문항은 빼기
+        .sort((a, b) => a.rate - b.rate || b.tries - a.tries)
+        .slice(0, k);
+    }
+
+    function drawStats() {
+      const solved = players.reduce((t, p) => t + p.answered, 0);
+      const correct = players.reduce((t, p) => t + p.correct, 0);
+      $('stRate').textContent = solved ? Math.round((correct / solved) * 100) + '%' : '-';
+      $('stSolved').textContent = String(solved);
+      $('stBox').textContent = String(answers.filter((a) => a.bonus > 0).length);
+      const hard = hardestWords(1, 3)[0];
+      $('stHard').textContent = hard ? hard.w.word : '-';
+      $('stHardSub').textContent = hard ? `${hard.w.wrong} ✗ · 정답률 ${Math.round(hard.rate * 100)}%` : '틀린 문항이 3번 넘게 나오면 보여요';
+    }
+
+    function startAnswersPolling() {
+      if (answersTimer) return;
+      const run = async () => { await fetchAnswers(); drawStats(); };
+      run();
+      answersTimer = setInterval(run, 10000);
+    }
+    function stopAnswersPolling() {
+      clearInterval(answersTimer);
+      answersTimer = null;
+    }
+
+    // ---------------- 골든 타임 · 블라인드 ----------------
+    $('goldenBtn').addEventListener('click', async () => {
+      $('goldenBtn').disabled = true;
+      try {
+        const r = await call('set_golden', { p_room: host.room_id, p_secret: host.host_secret, p_seconds: 20 });
+        room = { ...room, golden_until: r.golden_until };
+        tick();
+      } catch (e) {
+        toast(e.message);
+        $('goldenBtn').disabled = false;
+      }
+    });
+
+    async function setBlind(on) {
+      try {
+        await call('set_blind', { p_room: host.room_id, p_secret: host.host_secret, p_on: on });
+        room = { ...room, blind: on };
+        drawBlind();
+      } catch (e) {
+        toast(e.message);
+      }
+    }
+    $('blindBtn').addEventListener('click', () => setBlind(!room.blind));
+
+    function drawBlind() {
+      const on = !!room.blind;
+      $('raceCard').classList.toggle('blinded', on);
+      $('blindCover').classList.toggle('hidden', !on);
+      $('blindBtn').textContent = on ? '블라인드 해제' : '블라인드';
+    }
+
+    function drawGolden() {
+      const until = room.golden_until ? new Date(room.golden_until).getTime() : 0;
+      const left = Math.ceil((until - serverNow()) / 1000);
+      const on = room.status === 'playing' && left > 0;
+      document.body.classList.toggle('golden', on);
+      $('goldenBanner').classList.toggle('hidden', !on);
+      if (on) $('goldenBanner').textContent = `⚡ 골든 타임! 정답 2배 · ${left}초`;
+      $('goldenBtn').disabled = on;
+    }
+
+    // ---------------- 결과 축하 ----------------
+    let celebrated = null;
+    function celebrate() {
+      if (celebrated === host.room_id || typeof confetti !== 'function') return;
+      celebrated = host.room_id;
+      const shoot = (x) => confetti({ particleCount: 110, spread: 75, startVelocity: 48, origin: { x, y: 0.7 } });
+      shoot(0.2); shoot(0.8);
+      setTimeout(() => shoot(0.5), 450);
+    }
+
 
     function makeLane(p) {
       const rk = el('span', { class: 'rk' }, '');
@@ -548,8 +731,24 @@
       const alive = new Set(list.map((p) => p.id));
       for (const [id, lane] of lanes) if (!alive.has(id)) { lane.node.remove(); lanes.delete(id); }
 
+      const next = new Map();
       list.forEach((p, i) => {
         const lane = lanes.get(p.id) || makeLane(p);
+        const before = prevSnap.get(p.id);
+        const rank = i + 1;
+        next.set(p.id, { score: p.score, bonus: p.bonus, correct: p.correct, rank });
+        if (before) {
+          if (p.bonus > before.bonus) {
+            const n = p.bonus - before.bonus;
+            addNews(`🎁 ${p.name} 미스터리 상자 +${n}!`, 'gold');
+            showBadge(lane, `🎁 +${n}`, 'gold');
+          }
+          if (rank < before.rank) {
+            showBadge(lane, `▲${before.rank - rank}`, 'up');
+            if (rank <= 3 && before.rank > 3 && !room.blind) addNews(`🚀 ${withJosa(p.name, '이', '가')} ${rank}위로 올라섰어요`, 'up');
+          }
+          if (before.correct === 0 && p.correct > 0) addNews(`✨ ${p.name} 첫 정답!`, '');
+        }
         lane.node.style.transform = `translateY(${Math.min(i, SHOW_MAX) * LANE_H}px)`;
         lane.node.classList.toggle('out', i >= SHOW_MAX);
         lane.fill.style.width = Math.max(4, (p.score / top) * 100) + '%';
@@ -565,6 +764,7 @@
         }
       });
 
+      prevSnap = next;
       const shown = Math.min(list.length, SHOW_MAX);
       let more = $('race').querySelector('.race-more');
       if (list.length > SHOW_MAX) {
@@ -578,12 +778,16 @@
     }
 
     function startTicking() {
+      startAnswersPolling();
       if (ticker) return;
       ticker = setInterval(tick, 250);
     }
     function stopTicking() {
       clearInterval(ticker);
       ticker = null;
+      stopAnswersPolling();
+      document.body.classList.remove('golden');
+      $('goldenBanner').classList.add('hidden');
     }
 
     function tick() {
@@ -596,6 +800,13 @@
       const hurry = left <= 10;
       $('clock').classList.toggle('hurry', hurry);
       $('ring').classList.toggle('hurry', hurry);
+      drawGolden();
+      // 마지막 30초 자동 블라인드 (한 번만)
+      if (host.autoBlind && !host.autoBlindDone && left <= 30 && left > 0) {
+        host.autoBlindDone = true;
+        saveHost(host);
+        if (!room.blind) setBlind(true);
+      }
       if (left <= 0) finishGame();          // 0초가 되면 자동으로 끝내기
     }
 
@@ -658,7 +869,22 @@
           el('span', { class: 'muted', style: 'font-size:16px' }, `정답 ${p.correct} · 보너스 +${p.bonus}`),
           el('span', { class: 'sc' }, String(p.score)),
           el('span', { class: 'muted', style: 'font-size:16px' }, '점'))));
+      drawHardTop3();
       if (!list.length) $('podium').replaceChildren(el('p', { class: 'muted', style: 'grid-column:1/-1;text-align:center;font-size:22px' }, '참여한 학생이 없어요.'));
+    }
+
+    async function drawHardTop3() {
+      await fetchAnswers();
+      let top = hardestWords(3, 3);
+      if (!top.length) top = hardestWords(3, 1);
+      $('hardCard').classList.toggle('hidden', top.length === 0);
+      $('hardList').replaceChildren(...top.map((x, i) =>
+        el('div', { class: 'hard-row' },
+          el('span', { class: 'no' }, String(i + 1)),
+          el('span', { class: 'right' }, '⭕ ' + x.w.word),
+          el('span', { class: 'wrong' }, x.w.wrong),
+          el('span', {}, `정답률 ${Math.round(x.rate * 100)}%`),
+          el('span', { class: 'why muted' }, '💡 ' + x.w.meaning))));
     }
 
     $('wipeBtn').addEventListener('click', async () => {
@@ -681,6 +907,10 @@
       seenPlayers.clear();
       lanes.clear();
       $('race').replaceChildren();
+      prevSnap = new Map();
+      news = [];
+      answers = [];
+      $('newsList').replaceChildren(el('li', { class: 'muted' }, '아직 소식이 없어요'));
       clearHost();
       renderSetup();
       show('setup');
