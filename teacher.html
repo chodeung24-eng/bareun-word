@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>바른말 탐정단 · 선생님</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Jua&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .wrap { max-width: 1440px; margin: 0 auto; padding: 28px 36px 40px; }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .logo { width: 60px; height: 60px; border-radius: 18px; flex-shrink: 0;
+            background: linear-gradient(180deg, #A98FEA, #6A4BC8);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px rgba(91, 63, 176, 0.3); }
+    .brand h1 { font-size: 38px; color: var(--violet-deep); }
+    .brand p { margin: 2px 0 0; font-size: 18px; }
+
+    /* ---------- 방 만들기 ---------- */
+    .setup-grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; margin-top: 24px; align-items: start; }
+    .card { padding: 24px 28px; }
+    .card h2 { font-size: 24px; margin-bottom: 14px; }
+    .quick { margin-bottom: 18px; }
+    .quick .jelly { padding: 9px 16px; font-size: 17px; border-radius: 16px; }
+    .count { margin-left: auto; font-size: 20px; }
+    .count b { color: var(--violet-deep); font-size: 26px; font-weight: 400; }
+    .cat-row { padding: 14px 0; border-top: 1.5px dashed rgba(139, 111, 214, 0.25); }
+    .cat-row:first-of-type { border-top: 0; }
+    .cat-title { font-size: 19px; margin-bottom: 10px; display: flex; gap: 8px; align-items: baseline; }
+    .cat-title small { font-size: 15px; }
+    .chip.word { font-family: var(--font-ko); font-weight: 400; font-size: 19px; }
+    .opt-block { margin-bottom: 22px; }
+    .opt-block h3 { font-size: 19px; margin-bottom: 10px; }
+    .chip.time { font-family: var(--font-ko); font-weight: 400; font-size: 20px; padding: 9px 22px; }
+    label.check { display: flex; align-items: center; gap: 10px; font-size: 19px; cursor: pointer; }
+    label.check input { width: 24px; height: 24px; accent-color: var(--violet-deep); }
+    #createBtn { width: 100%; height: 72px; font-size: 26px; margin-top: 6px; }
+
+    /* ---------- 대기실 ---------- */
+    .lobby-grid { display: grid; grid-template-columns: 400px 1fr; gap: 24px; margin-top: 24px; align-items: start; }
+    .qr-card { padding: 28px; text-align: center; }
+    .qr-card .guide { font-size: 22px; margin-bottom: 18px; }
+    .qr-box { background: #fff; border-radius: 22px; padding: 22px; box-shadow: inset 0 0 0 1px rgba(46, 37, 80, 0.06); }
+    .qr-box svg { width: 100%; height: auto; display: block; }
+    .code-label { margin-top: 20px; font-size: 20px; }
+    .code { font-family: var(--font-en); font-weight: 700; font-size: 72px; line-height: 1.1; color: var(--violet-deep); letter-spacing: 6px; }
+    .qr-url { font-size: 14px; word-break: break-all; margin-top: 6px; }
+    .info { padding: 18px 22px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
+    .info .group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .info .label { font-size: 18px; }
+    .info .chip { font-family: var(--font-ko); font-weight: 400; font-size: 17px; padding: 5px 13px; }
+    .players-card { padding: 24px 28px; margin-top: 20px; min-height: 420px; }
+    .players-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+    .players-head h2 { font-size: 28px; }
+    .players-head .num { font-family: var(--font-en); font-weight: 700; font-size: 30px; color: var(--violet-deep); }
+    .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 16px; }
+    .player { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+    .player .name { font-size: 19px; max-width: 118px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty { text-align: center; padding: 60px 0; font-size: 22px; }
+    .lobby-actions { display: flex; gap: 16px; margin-top: 20px; }
+    #deleteBtn { padding: 0 26px; height: 76px; font-size: 20px; }
+    #startBtn { flex: 1; height: 76px; font-size: 30px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- ================= 방 만들기 ================= -->
+    <section id="setup" class="screen hidden">
+      <header class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+        </div>
+        <div>
+          <h1>바른말 탐정단</h1>
+          <p class="muted">국어 · 맞춤법 게임 방 만들기</p>
+        </div>
+      </header>
+
+      <div class="setup-grid">
+        <div class="glass card">
+          <h2>오늘 풀 문항 고르기</h2>
+          <div class="row quick" id="quick"></div>
+          <div id="wordRows"></div>
+        </div>
+
+        <aside class="glass card">
+          <div class="opt-block">
+            <h3>게임 시간</h3>
+            <div class="row" id="timeChips">
+              <button type="button" class="chip time" data-sec="60">1분</button>
+              <button type="button" class="chip time on" data-sec="120">2분</button>
+              <button type="button" class="chip time" data-sec="180">3분</button>
+            </div>
+          </div>
+          <div class="opt-block">
+            <h3>재미 장치</h3>
+            <label class="check"><input type="checkbox" id="bonusOn" checked> 미스터리 상자</label>
+          </div>
+          <p class="muted" id="createHint" style="font-size:16px;margin:0 0 10px"></p>
+          <button type="button" class="jelly btn-violet" id="createBtn">방 만들기</button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ================= 대기실 ================= -->
+    <section id="lobby" class="screen hidden">
+      <header class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+        </div>
+        <div>
+          <h1>바른말 탐정단</h1>
+          <p class="muted">탐정들이 모이는 중이에요</p>
+        </div>
+      </header>
+
+      <div class="lobby-grid">
+        <div class="glass qr-card">
+          <p class="guide">휴대폰 카메라로 찍고 들어오세요</p>
+          <div class="qr-box" id="qrBox"></div>
+          <p class="code-label muted">방 번호</p>
+          <div class="code" id="roomCode">----</div>
+          <p class="qr-url muted" id="qrUrl"></p>
+        </div>
+
+        <div>
+          <div class="glass info">
+            <div class="group"><span class="label">오늘의 문항</span><span id="lobbyWords" class="row" style="gap:6px"></span></div>
+            <div class="group"><span class="label" id="lobbyTime"></span></div>
+            <div class="group"><span class="label" id="lobbyBonus"></span></div>
+          </div>
+
+          <div class="glass players-card">
+            <div class="players-head">
+              <h2>들어온 탐정들</h2>
+              <span class="num" id="playerCount">0</span><span class="muted" style="font-size:20px">명</span>
+            </div>
+            <div class="player-grid" id="playerGrid"></div>
+            <p class="empty muted" id="playerEmpty">아직 아무도 없어요. QR 코드를 찍어 들어와 보세요!</p>
+          </div>
+
+          <div class="lobby-actions">
+            <button type="button" class="jelly btn-white" id="deleteBtn">방 지우기</button>
+            <button type="button" class="jelly btn-violet" id="startBtn" disabled>▶ 게임 시작</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script>
+    // ===================================================================
+    // 바른말 탐정단 · 선생님 화면
+    // ===================================================================
+    const HOST_KEY = 'bareun-host';
+    const CATEGORIES = [
+      ['spelling', '맞춤법'], ['spacing', '띄어쓰기'], ['standard', '표준어'],
+      ['confusing', '헷갈리는 말'], ['loanword', '외래어']
+    ];
+    const CAT_NAME = Object.fromEntries(CATEGORIES);
+    const $ = (id) => document.getElementById(id);
+
+    let words = [];              // words 테이블 전체
+    let selected = new Set();    // 고른 문항 id
+    let duration = 120;
+    let host = null;             // { room_id, code, host_secret }
+    let room = null;             // rooms 한 줄
+    let players = [];
+    let watcher = null;
+    let redrawTimer = null;
+    const seenPlayers = new Set();   // 이미 그린 학생 (새로 들어온 학생만 톡 튀어나오게)
+
+    function show(id) {
+      for (const s of document.querySelectorAll('.screen')) s.classList.toggle('hidden', s.id !== id);
+    }
+    function loadHost() {
+      try { return JSON.parse(localStorage.getItem(HOST_KEY)); } catch { return null; }
+    }
+    function saveHost(h) { localStorage.setItem(HOST_KEY, JSON.stringify(h)); }
+    function clearHost() { localStorage.removeItem(HOST_KEY); host = null; room = null; players = []; }
+
+    // ---------------- 방 만들기 화면 ----------------
+    async function loadWords() {
+      const { data, error } = await db.from('words').select('*').order('id');
+      if (error) throw new Error(friendly(error.message));
+      words = data || [];
+    }
+
+    function renderSetup() {
+      // 빠른 버튼
+      const quick = $('quick');
+      quick.replaceChildren();
+      for (const [key, name] of CATEGORIES) {
+        quick.append(el('button', { type: 'button', class: 'jelly btn-white', onclick: () => toggleCategory(key) }, name));
+      }
+      quick.append(
+        el('button', { type: 'button', class: 'jelly btn-amber', onclick: () => { words.forEach((w) => selected.add(w.id)); renderSetup(); } }, '전체 선택'),
+        el('button', { type: 'button', class: 'jelly btn-white', onclick: () => { selected.clear(); renderSetup(); } }, '모두 해제'),
+        el('span', { class: 'count' }, '고른 문항 ', el('b', {}, String(selected.size)), '개')
+      );
+
+      // 분류별 문항 칩
+      const rows = $('wordRows');
+      rows.replaceChildren();
+      for (const [key, name] of CATEGORIES) {
+        const list = words.filter((w) => w.category === key);
+        if (!list.length) continue;
+        const picked = list.filter((w) => selected.has(w.id)).length;
+        rows.append(el('div', { class: 'cat-row' },
+          el('div', { class: 'cat-title' }, name, el('small', { class: 'muted' }, `${picked} / ${list.length}`)),
+          el('div', { class: 'row' }, list.map((w) =>
+            el('button', {
+              type: 'button',
+              class: 'chip word' + (selected.has(w.id) ? ' on' : ''),
+              'aria-pressed': selected.has(w.id) ? 'true' : 'false',
+              onclick: () => { selected.has(w.id) ? selected.delete(w.id) : selected.add(w.id); renderSetup(); }
+            }, w.word)))
+        ));
+      }
+
+      const ok = selected.size >= 4 && selected.size <= 40;
+      $('createBtn').disabled = !ok;
+      $('createHint').textContent = selected.size < 4 ? '문항을 4개 이상 골라 주세요.' : '';
+    }
+
+    function toggleCategory(key) {
+      const ids = words.filter((w) => w.category === key).map((w) => w.id);
+      const allOn = ids.every((id) => selected.has(id));
+      ids.forEach((id) => (allOn ? selected.delete(id) : selected.add(id)));
+      renderSetup();
+    }
+
+    $('timeChips').addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip.time');
+      if (!btn) return;
+      duration = Number(btn.dataset.sec);
+      for (const c of document.querySelectorAll('.chip.time')) c.classList.toggle('on', c === btn);
+    });
+
+    $('createBtn').addEventListener('click', async () => {
+      const btn = $('createBtn');
+      btn.disabled = true;
+      try {
+        const r = await call('create_room', {
+          p_word_ids: [...selected],
+          p_duration: duration,
+          p_bonus: $('bonusOn').checked
+        });
+        host = { room_id: r.room_id, code: r.code, host_secret: r.host_secret };
+        saveHost(host);
+        await enterRoom();
+      } catch (e) {
+        toast(e.message);
+      } finally {
+        renderSetup();
+      }
+    });
+
+    // ---------------- 대기실 ----------------
+    async function fetchRoom() {
+      const { data, error } = await db.from('rooms').select('*').eq('id', host.room_id).maybeSingle();
+      if (error) throw new Error(friendly(error.message));
+      return data;
+    }
+    async function fetchPlayers() {
+      const { data, error } = await db.from('players').select('*').eq('room_id', host.room_id).order('joined_at');
+      if (error) throw new Error(friendly(error.message));
+      return data || [];
+    }
+
+    async function enterRoom() {
+      const row = await fetchRoom();
+      if (!row) { backToSetup('방이 없어져서 새로 만들어야 해요.'); return; }
+      room = row;
+      players = await fetchPlayers();
+      drawQR();
+      drawLobby();
+      show('lobby');
+      startWatch();
+    }
+
+    function startWatch() {
+      if (watcher) watcher.stop();
+      watcher = watch({
+        name: 'host-' + host.room_id,
+        tables: [
+          { table: 'players', filter: 'room_id=eq.' + host.room_id },
+          { table: 'rooms', filter: 'id=eq.' + host.room_id }
+        ],
+        onChange: scheduleRefresh,
+        refresh: refreshAll
+      });
+    }
+
+    // 알림이 한꺼번에 몰려와도 0.4초에 한 번만 다시 그리기
+    function scheduleRefresh() {
+      if (redrawTimer) return;
+      redrawTimer = setTimeout(async () => { redrawTimer = null; await refreshAll(); }, 400);
+    }
+
+    async function refreshAll() {
+      if (!host) return;
+      try {
+        const [row, list] = await Promise.all([fetchRoom(), fetchPlayers()]);
+        if (!row) { backToSetup('방이 지워졌어요.'); return; }
+        room = row;
+        players = list;
+        drawLobby();
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function drawQR() {
+      const url = new URL('student.html?code=' + host.code, location.href).href;
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      $('qrBox').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });   // 우리가 만든 SVG만 넣음
+      $('roomCode').textContent = host.code;
+      $('qrUrl').textContent = url;
+    }
+
+    function drawLobby() {
+      // 오늘의 문항: 개수 + 분류별 개수
+      const ids = new Set(room.word_ids);
+      const box = $('lobbyWords');
+      box.replaceChildren(el('span', { class: 'chip on' }, `${ids.size}개`));
+      for (const [key, name] of CATEGORIES) {
+        const n = words.filter((w) => w.category === key && ids.has(w.id)).length;
+        if (n) box.append(el('span', { class: 'chip' }, `${name} ${n}`));
+      }
+      $('lobbyTime').textContent = `게임 시간 ${room.duration_sec / 60}분`;
+      $('lobbyBonus').textContent = `미스터리 상자 ${room.bonus_on ? '켬' : '끔'}`;
+
+      // 들어온 학생
+      $('playerCount').textContent = String(players.length);
+      $('playerGrid').replaceChildren(...players.map((p) => {
+        const isNew = !seenPlayers.has(p.id);
+        seenPlayers.add(p.id);
+        return el('div', { class: 'player' + (isNew ? ' pop' : '') }, avatarEl(p, 64), el('span', { class: 'name' }, p.name));
+      }));
+      $('playerEmpty').classList.toggle('hidden', players.length > 0);
+      $('startBtn').disabled = players.length === 0;
+    }
+
+    $('deleteBtn').addEventListener('click', async () => {
+      if (!confirm('방을 지울까요? 들어온 학생 정보도 함께 지워져요.')) return;
+      try {
+        await call('delete_room', { p_room: host.room_id, p_secret: host.host_secret });
+        backToSetup('방을 지웠어요.');
+      } catch (e) {
+        toast(e.message);
+      }
+    });
+
+    $('startBtn').addEventListener('click', () => {
+      toast('게임 시작은 다음 단계(Step 3)에서 만들어요!');
+    });
+
+    function backToSetup(message) {
+      if (watcher) { watcher.stop(); watcher = null; }
+      clearHost();
+      renderSetup();
+      show('setup');
+      if (message) toast(message);
+    }
+
+    // ---------------- 처음 열 때 ----------------
+    (async function init() {
+      try {
+        await loadWords();
+      } catch (e) {
+        toast(e.message, 6000);
+      }
+      words.filter((w) => w.category === 'spelling').forEach((w) => selected.add(w.id));   // 처음엔 맞춤법 전체
+      renderSetup();
+
+      host = loadHost();
+      if (host && host.room_id) {
+        try { await enterRoom(); return; } catch (e) { toast(e.message); }   // 인터넷 문제면 저장은 남겨 둠
+      }
+      show('setup');
+    })();
+  </script>
+</body>
+</html>
