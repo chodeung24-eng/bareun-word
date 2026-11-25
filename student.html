@@ -50,6 +50,37 @@
     #ended .score-card { margin-top: 24px; padding: 28px 20px; text-align: center; }
     #ended .score-card .num { font-family: var(--font-en); font-weight: 700; font-size: 64px; color: var(--violet-deep); line-height: 1.1; }
     #ended .score-card .lbl { font-size: 20px; }
+
+    /* ---------- 문제 화면 ---------- */
+    #play.screen { padding-bottom: 10px; }
+    .me-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 22px; }
+    .me-bar .nm { font-size: 20px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .score-pill { background: linear-gradient(180deg, #A98FEA, #6A4BC8); color: #fff; font-size: 20px; padding: 6px 16px; }
+    .score-pill b { font-family: var(--font-en); font-weight: 700; font-size: 22px; margin-right: 2px; }
+    .q-meta { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 4px 6px; font-size: 19px; }
+    .q-time { font-family: var(--font-en); font-weight: 700; font-size: 22px; }
+    .q-time.hurry { color: var(--coral); }
+    .progress { height: 8px; border-radius: 99px; background: rgba(139, 111, 214, 0.18); overflow: hidden; }
+    .progress > div { height: 100%; width: 100%; border-radius: 99px; background: linear-gradient(90deg, #A98FEA, #6A4BC8); transition: width 0.25s linear; }
+    .progress.hurry > div { background: linear-gradient(90deg, #FF9AAE, #E85C7A); }
+    .q-card { margin-top: 14px; padding: 22px 18px 26px; text-align: center; min-height: 190px;
+              display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+    .q-label { background: rgba(255, 255, 255, 0.78); color: var(--violet-deep); font-size: 16px; padding: 5px 14px; }
+    .q-text { font-size: 28px; line-height: 1.5; word-break: keep-all; }
+    .blank { display: inline-block; min-width: 3.2em; border-bottom: 4px solid var(--violet); margin: 0 4px;
+             color: transparent; line-height: 1.1; }
+    .explain { margin-top: 12px; padding: 14px 16px; font-size: 19px; line-height: 1.5; text-align: left;
+               background: rgba(255, 248, 225, 0.85); }
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .opts .jelly { height: 76px; font-size: 24px; padding: 0 8px; white-space: nowrap; overflow: hidden; }
+    .opts .jelly.long { font-size: 20px; }
+    .opts.ox .jelly { height: 110px; font-family: var(--font-en); font-weight: 700; font-size: 48px; }
+    .opts .jelly.is-correct:disabled, .opts .jelly.is-wrong:disabled { filter: none; }
+    .float-gain { position: fixed; left: 50%; top: 42%; transform: translateX(-50%); z-index: 60; pointer-events: none;
+                  font-family: var(--font-en); font-weight: 700; font-size: 64px; color: var(--green);
+                  text-shadow: 0 4px 14px rgba(47, 163, 125, 0.35); }
+    .float-gain span { display: block; animation: floatUp 0.9s ease-out forwards; }
+    .time-up { margin-top: 18px; padding: 22px 16px; text-align: center; font-size: 24px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -90,12 +121,26 @@
       <button type="button" class="relink" id="relinkBtn">다른 이름으로 다시 들어가기</button>
     </section>
 
-    <!-- ================= 게임 중 (문제는 다음 단계) ================= -->
+    <!-- ================= 문제 풀기 ================= -->
     <section id="play" class="screen hidden">
-      <div class="big-msg">
-        <h1 class="pop">게임 시작!</h1>
-        <p class="sub muted">문제 화면은 다음 단계에서 만들어요.</p>
+      <div class="glass me-bar">
+        <span id="playAvatar"></span>
+        <span class="nm" id="playName"></span>
+        <span class="pill score-pill"><b id="playScore">0</b>점</span>
       </div>
+      <div class="q-meta">
+        <span id="qNum">문제 1</span>
+        <span class="q-time" id="qTime">00:00</span>
+      </div>
+      <div class="progress" id="progress"><div id="progressBar"></div></div>
+
+      <div class="glass q-card" id="qCard">
+        <span class="pill q-label" id="qLabel">준비 중</span>
+        <div class="q-text" id="qText">문제를 가져오고 있어요…</div>
+      </div>
+      <div id="explainBox"></div>
+      <div class="opts" id="opts"></div>
+      <div class="glass time-up hidden" id="timeUp">⏰ 시간 끝!<br>선생님 화면을 보세요</div>
     </section>
 
     <!-- ================= 끝 ================= -->
@@ -228,14 +273,152 @@
         toast('선생님이 방을 닫았어요.');
         return;
       }
+      currentRoom = row;
       if (row.status === shownStatus) return;        // 같은 상태면 다시 그리지 않음
       shownStatus = row.status;
       if (row.status === 'waiting') {
         show('waiting');
       } else if (row.status === 'playing') {
-        show('play');
+        startPlay();
       } else {
+        stopPlay();
         showEnded();
+      }
+    }
+
+    // ---------------- 문제 풀기 ----------------
+    let currentRoom = null;
+    let qCount = 0;          // 지금 몇 번째 문제
+    let busy = false;        // 답을 보내는 중이면 true (두 번 누르기 막기)
+    let playTimer = null;
+    let timeOver = false;
+
+    async function startPlay() {
+      timeOver = false;
+      $('timeUp').classList.add('hidden');
+      $('playAvatar').replaceChildren(avatarEl({ id: me.player_id, avatar: me.avatar }, 40));
+      $('playName').textContent = me.name;
+      show('play');
+      // 새로고침해도 점수와 문제 번호가 이어지게
+      const { data } = await db.from('players').select('*').eq('id', me.player_id).maybeSingle();
+      if (data) { $('playScore').textContent = String(data.score); qCount = data.answered; }
+      if (!playTimer) playTimer = setInterval(playTick, 250);
+      playTick();
+      try {
+        const r = await call('next_question', { p_player: me.player_id, p_token: me.token });
+        if (r.result === 'ok') drawQuestion(r.question);
+        else refreshRoom();
+      } catch (e) {
+        toast(e.message);
+      }
+    }
+
+    function stopPlay() {
+      clearInterval(playTimer);
+      playTimer = null;
+    }
+
+    function playTick() {
+      if (!currentRoom || !currentRoom.ends_at) return;
+      const left = secondsLeft(currentRoom.ends_at);
+      const hurry = left <= 10;
+      $('qTime').textContent = mmss(left);
+      $('qTime').classList.toggle('hurry', hurry);
+      $('progress').classList.toggle('hurry', hurry);
+      $('progressBar').style.width = (Math.max(0, Math.min(1, left / currentRoom.duration_sec)) * 100) + '%';
+      if (left <= 0 && !timeOver) {
+        timeOver = true;
+        lockOptions();
+        $('timeUp').classList.remove('hidden');
+      }
+    }
+
+    // "____" 를 보라색 밑줄 빈칸으로 (글자는 textContent 로만 넣음)
+    function questionText(text) {
+      const parts = String(text).split(/_{2,}/);
+      const out = [];
+      parts.forEach((part, i) => {
+        if (i > 0) out.push(el('span', { class: 'blank', 'aria-label': '빈칸' }, '빈칸'));
+        out.push(document.createTextNode(part));
+      });
+      return out;
+    }
+
+    function drawQuestion(q) {
+      if (!q || timeOver) return;
+      qCount += 1;
+      busy = false;
+      $('qNum').textContent = '문제 ' + qCount;
+      $('qLabel').textContent = q.label;
+      $('qText').replaceChildren(...questionText(q.text));
+      $('qCard').classList.remove('pop'); void $('qCard').offsetWidth; $('qCard').classList.add('pop');
+      $('explainBox').replaceChildren();
+
+      const isOX = q.type === 'ox';
+      const box = $('opts');
+      box.className = 'opts' + (isOX ? ' ox' : '');
+      box.replaceChildren(...q.options.map((o, i) => {
+        let color = 'opt-' + (i + 1);
+        if (isOX) color = o.value === 'O' ? 'opt-4' : 'opt-2';
+        const long = !isOX && o.value.length >= 5;
+        return el('button', {
+          type: 'button',
+          class: `jelly ${color}${long ? ' long' : ''}`,
+          'data-value': o.value,
+          onclick: () => choose(o.value)
+        }, o.value);
+      }));
+    }
+
+    function optionButtons() { return [...$('opts').querySelectorAll('button')]; }
+    function lockOptions() { optionButtons().forEach((b) => (b.disabled = true)); }
+    function findButton(value) { return optionButtons().find((b) => b.dataset.value === value); }
+
+    function floatGain(n) {
+      const f = el('div', { class: 'float-gain' }, el('span', {}, '+' + n));
+      document.body.append(f);
+      setTimeout(() => f.remove(), 950);
+    }
+
+    async function choose(value) {
+      if (busy || timeOver) return;
+      busy = true;
+      lockOptions();
+      const picked = findButton(value);
+      let r;
+      try {
+        r = await call('submit_answer', { p_player: me.player_id, p_token: me.token, p_choice: value });
+      } catch (e) {
+        toast(e.message);
+        busy = false;
+        optionButtons().forEach((b) => (b.disabled = false));
+        return;
+      }
+
+      if (r.result === 'correct') {
+        picked.classList.add('is-correct');
+        floatGain(r.gain + (r.bonus || 0));
+        $('playScore').textContent = String(r.score);
+        await wait(650);
+        drawQuestion(r.next);
+      } else if (r.result === 'wrong') {
+        picked.classList.add('is-wrong', 'shake');
+        const right = findButton(r.answer);
+        if (right) right.classList.add('is-correct');
+        if (r.explain) {
+          $('explainBox').replaceChildren(el('div', { class: 'glass explain pop' }, '💡 ', r.explain));
+        }
+        await wait(2000);
+        drawQuestion(r.next);
+      } else if (r.result === 'wait') {
+        await wait(400);
+        busy = false;
+        optionButtons().forEach((b) => (b.disabled = false));
+      } else if (r.result === 'no_question') {
+        drawQuestion(r.next);
+      } else {
+        // closed: 시간이 끝났거나 게임이 끝남
+        refreshRoom();
       }
     }
 
