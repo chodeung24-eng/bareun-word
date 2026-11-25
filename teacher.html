@@ -64,7 +64,7 @@
     #startBtn { flex: 1; height: 76px; font-size: 30px; }
 
     /* ---------- 게임 중 ---------- */
-    .topbar { display: flex; align-items: center; gap: 20px; padding: 14px 22px; }
+    .topbar { display: flex; align-items: center; gap: 20px; padding: 10px 22px; }
     .topbar .logo { width: 52px; height: 52px; border-radius: 16px; }
     .topbar .title { font-size: 26px; color: var(--violet-deep); }
     .topbar .meta { font-size: 19px; }
@@ -77,14 +77,63 @@
     .clock { font-family: var(--font-en); font-weight: 700; font-size: 52px; min-width: 150px; color: var(--ink); }
     .clock.hurry { color: var(--coral); }
     #endBtn { height: 60px; padding: 0 26px; font-size: 21px; }
-    .race-card { padding: 22px 28px; margin-top: 20px; min-height: 560px; }
-    .race-card h2 { font-size: 28px; margin-bottom: 14px; }
+    .race-card { padding: 14px 28px 16px; margin-top: 14px; min-height: 560px; }
+    .race-card h2 { font-size: 24px; margin-bottom: 8px; }
     .rank-list { list-style: none; margin: 0; padding: 0; }
     .rank-list li { display: flex; align-items: center; gap: 14px; padding: 8px 6px; font-size: 22px;
                     border-bottom: 1.5px dashed rgba(139, 111, 214, 0.2); }
     .rank-list .rk { width: 44px; text-align: center; font-family: var(--font-en); font-weight: 700; font-size: 24px; color: var(--violet-deep); }
     .rank-list .nm { flex: 1; }
     .rank-list .sc { font-family: var(--font-en); font-weight: 700; font-size: 26px; }
+
+    /* ---------- 막대 레이스 ---------- */
+    .race { position: relative; }
+    .lane { position: absolute; left: 0; right: 0; top: 0; height: 54px; display: flex; align-items: center; gap: 12px;
+            transition: transform 0.5s cubic-bezier(.4, 0, .2, 1), opacity 0.3s; }
+    .lane.out { opacity: 0; pointer-events: none; }
+    .lane .rk { width: 40px; text-align: center; font-family: var(--font-en); font-weight: 700; font-size: 26px; color: var(--ink-soft); }
+    .lane .rk.r1 { color: #D9A21B; } .lane .rk.r2 { color: #8E9AAB; } .lane .rk.r3 { color: #C07A45; }
+    .lane .nm { width: 150px; font-size: 21px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tube { flex: 1; height: 36px; border-radius: 99px; position: relative; overflow: hidden;
+            background: rgba(255, 255, 255, 0.55); border: 1.5px solid rgba(255, 255, 255, 0.95);
+            box-shadow: inset 0 2px 6px rgba(46, 37, 80, 0.12); }
+    .tube .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px;
+                  transition: width 0.5s cubic-bezier(.4, 0, .2, 1);
+                  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.55); }
+    .tube .pts { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+                 font-family: var(--font-en); font-weight: 700; font-size: 20px; color: var(--ink); }
+    .lane .badge { width: 86px; font-size: 17px; }
+    .race-more { position: absolute; left: 52px; font-size: 18px; }
+
+    /* ---------- 시상대 ---------- */
+    .podium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 22px; align-items: end;
+              max-width: 980px; margin: 26px auto 0; }
+    .stand { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .stand .who { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .stand .crown { font-size: 46px; line-height: 1; margin-bottom: -6px; }
+    .stand .avatar { border-width: 5px; }
+    .stand.p1 .avatar { border-color: #F5C542; box-shadow: 0 0 0 4px rgba(245, 197, 66, 0.35), 0 10px 24px rgba(46, 37, 80, 0.2); }
+    .stand.p2 .avatar { border-color: #C3CBD6; }
+    .stand.p3 .avatar { border-color: #D9A27A; }
+    .stand .pname { font-size: 26px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .base { width: 100%; border-radius: 26px 26px 18px 18px; padding: 18px 10px; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start; gap: 4px; }
+    .stand.p1 .base { height: 260px; background: linear-gradient(180deg, rgba(255, 231, 168, 0.75), rgba(255, 255, 255, 0.4)); }
+    .stand.p2 .base { height: 210px; background: linear-gradient(180deg, rgba(226, 232, 240, 0.8), rgba(255, 255, 255, 0.4)); }
+    .stand.p3 .base { height: 178px; background: linear-gradient(180deg, rgba(245, 214, 190, 0.8), rgba(255, 255, 255, 0.4)); }
+    .base .place { font-family: var(--font-en); font-weight: 700; font-size: 54px; line-height: 1; }
+    .stand.p1 .place { color: #D9A21B; } .stand.p2 .place { color: #8E9AAB; } .stand.p3 .place { color: #C07A45; }
+    .base .pts { font-family: var(--font-en); font-weight: 700; font-size: 30px; }
+    .base .detail { font-size: 17px; }
+    .stand.empty { visibility: hidden; }
+    .runners { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 980px; margin: 22px auto 0; }
+    .runner { display: flex; align-items: center; gap: 16px; padding: 16px 22px; }
+    .runner .place { font-family: var(--font-en); font-weight: 700; font-size: 34px; color: var(--violet-deep); width: 40px; }
+    .runner .info { flex: 1; min-width: 0; }
+    .runner .pname { font-size: 24px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .runner .pts { font-family: var(--font-en); font-weight: 700; font-size: 30px; }
+    .others { max-width: 980px; margin: 18px auto 0; padding: 14px 24px; }
+    .others .rank-list li { font-size: 19px; padding: 6px; }
 
     /* ---------- 결과 ---------- */
     .result-head { text-align: center; margin-top: 10px; }
@@ -202,7 +251,7 @@
 
       <div class="glass race-card">
         <h2>실시간 레이스</h2>
-        <ol class="rank-list" id="rankList"></ol>
+        <div class="race" id="race"></div>
       </div>
     </section>
 
@@ -212,7 +261,9 @@
         <h1>🏆 오늘의 맞춤법 탐정왕</h1>
         <p class="muted" id="resultMeta"></p>
       </div>
-      <div class="glass result-card">
+      <div class="podium" id="podium"></div>
+      <div class="runners" id="runners"></div>
+      <div class="glass others hidden" id="othersCard">
         <ol class="rank-list" id="resultList"></ol>
       </div>
       <div class="result-actions">
@@ -468,15 +519,62 @@
 
     function drawGame() {
       $('gameMeta').textContent = `국어 · 방 번호 ${room.code} · ${players.length}명 참여 중`;
-      const list = sortPlayers(players);
-      $('rankList').replaceChildren(...list.map((p, i) =>
-        el('li', {},
-          el('span', { class: 'rk' }, String(i + 1)),
-          avatarEl(p, 44),
-          el('span', { class: 'nm' }, p.name),
-          el('span', { class: 'sc' }, String(p.score)),
-          el('span', { class: 'muted', style: 'font-size:17px' }, '점'))));
+      drawRace();
       tick();
+    }
+
+    // ---------------- 막대 레이스 ----------------
+    // 학생마다 줄(lane)을 한 번만 만들고, 다음부터는 위치와 길이만 바꿔서 미끄러지게
+    const LANE_H = 54;
+    const SHOW_MAX = 12;
+    const lanes = new Map();       // player id → { node, rk, fill, pts, badge, rank }
+
+    function makeLane(p) {
+      const rk = el('span', { class: 'rk' }, '');
+      const fill = el('div', { class: 'fill', style: `background: linear-gradient(90deg, ${colorFor(p.id)}88, ${colorFor(p.id)})` });
+      const pts = el('span', { class: 'pts' }, '0');
+      const badge = el('span', { class: 'badge' });
+      const node = el('div', { class: 'lane' }, rk, avatarEl(p, 40), el('span', { class: 'nm' }, p.name),
+        el('div', { class: 'tube' }, fill, pts), badge);
+      const lane = { node, rk, fill, pts, badge, rank: null };
+      lanes.set(p.id, lane);
+      $('race').append(node);
+      return lane;
+    }
+
+    function drawRace() {
+      const list = sortPlayers(players);
+      const top = Math.max(10, ...list.map((p) => p.score));
+      const alive = new Set(list.map((p) => p.id));
+      for (const [id, lane] of lanes) if (!alive.has(id)) { lane.node.remove(); lanes.delete(id); }
+
+      list.forEach((p, i) => {
+        const lane = lanes.get(p.id) || makeLane(p);
+        lane.node.style.transform = `translateY(${Math.min(i, SHOW_MAX) * LANE_H}px)`;
+        lane.node.classList.toggle('out', i >= SHOW_MAX);
+        lane.fill.style.width = Math.max(4, (p.score / top) * 100) + '%';
+        lane.pts.textContent = String(p.score);
+        if (lane.rank !== i + 1) {
+          const first = lane.rank === null;
+          lane.rank = i + 1;
+          const setRank = () => {
+            lane.rk.textContent = String(lane.rank);
+            lane.rk.className = 'rk' + (lane.rank <= 3 ? ' r' + lane.rank : '');
+          };
+          first ? setRank() : setTimeout(setRank, 520);   // 막대가 다 움직인 뒤 숫자 바꾸기
+        }
+      });
+
+      const shown = Math.min(list.length, SHOW_MAX);
+      let more = $('race').querySelector('.race-more');
+      if (list.length > SHOW_MAX) {
+        if (!more) { more = el('div', { class: 'race-more muted' }); $('race').append(more); }
+        more.style.top = (shown * LANE_H + 8) + 'px';
+        more.textContent = `그 밖의 ${list.length - SHOW_MAX}명도 열심히 달리는 중`;
+      } else if (more) {
+        more.remove();
+      }
+      $('race').style.height = (shown * LANE_H + (list.length > SHOW_MAX ? 40 : 0)) + 'px';
     }
 
     function startTicking() {
@@ -523,14 +621,44 @@
     function drawResult() {
       const list = sortPlayers(players);
       $('resultMeta').textContent = `방 번호 ${room.code} · ${list.length}명의 탐정이 함께했어요`;
-      $('resultList').replaceChildren(...list.map((p, i) =>
+
+      // 시상대: 왼쪽 2위 · 가운데 1위 · 오른쪽 3위
+      const stand = (p, place) => {
+        if (!p) return el('div', { class: `stand p${place} empty` });
+        return el('div', { class: `stand p${place}` },
+          el('div', { class: 'who' },
+            place === 1 ? el('div', { class: 'crown', 'aria-hidden': 'true' }, '👑') : null,
+            avatarEl(p, place === 1 ? 120 : 92),
+            el('div', { class: 'pname' }, p.name)),
+          el('div', { class: 'glass base' },
+            el('div', { class: 'place' }, String(place)),
+            el('div', { class: 'pts' }, `${p.score}점`),
+            el('div', { class: 'detail muted' }, `정답 ${p.correct} · 보너스 +${p.bonus}`)));
+      };
+      $('podium').replaceChildren(stand(list[1], 2), stand(list[0], 1), stand(list[2], 3));
+
+      // 4 · 5위 큰 카드
+      $('runners').replaceChildren(...list.slice(3, 5).map((p, i) =>
+        el('div', { class: 'glass runner' },
+          el('span', { class: 'place' }, String(i + 4)),
+          avatarEl(p, 60),
+          el('div', { class: 'info' },
+            el('div', { class: 'pname' }, p.name),
+            el('div', { class: 'muted', style: 'font-size:16px' }, `정답 ${p.correct} · 보너스 +${p.bonus}`)),
+          el('span', { class: 'pts' }, String(p.score)))));
+
+      // 6위부터 작은 목록
+      const rest = list.slice(5);
+      $('othersCard').classList.toggle('hidden', rest.length === 0);
+      $('resultList').replaceChildren(...rest.map((p, i) =>
         el('li', {},
-          el('span', { class: 'rk' }, String(i + 1)),
-          avatarEl(p, 44),
+          el('span', { class: 'rk' }, String(i + 6)),
+          avatarEl(p, 36),
           el('span', { class: 'nm' }, p.name),
+          el('span', { class: 'muted', style: 'font-size:16px' }, `정답 ${p.correct} · 보너스 +${p.bonus}`),
           el('span', { class: 'sc' }, String(p.score)),
-          el('span', { class: 'muted', style: 'font-size:17px' }, '점'))));
-      if (!list.length) $('resultList').append(el('li', { class: 'muted' }, '참여한 학생이 없어요.'));
+          el('span', { class: 'muted', style: 'font-size:16px' }, '점'))));
+      if (!list.length) $('podium').replaceChildren(el('p', { class: 'muted', style: 'grid-column:1/-1;text-align:center;font-size:22px' }, '참여한 학생이 없어요.'));
     }
 
     $('wipeBtn').addEventListener('click', async () => {
@@ -551,6 +679,8 @@
       if (watcher) { watcher.stop(); watcher = null; }
       stopTicking();
       seenPlayers.clear();
+      lanes.clear();
+      $('race').replaceChildren();
       clearHost();
       renderSetup();
       show('setup');

@@ -50,6 +50,22 @@
     #ended .score-card { margin-top: 24px; padding: 28px 20px; text-align: center; }
     #ended .score-card .num { font-family: var(--font-en); font-weight: 700; font-size: 64px; color: var(--violet-deep); line-height: 1.1; }
     #ended .score-card .lbl { font-size: 20px; }
+    #ended .me-name { font-size: 26px; margin-top: 10px; }
+    #ended .place { font-family: var(--font-en); font-weight: 700; font-size: 96px; line-height: 1; color: var(--violet-deep); }
+    #ended .place small { font-family: var(--font-ko); font-weight: 400; font-size: 40px; margin-left: 4px; }
+    #ended .sub1 { font-size: 22px; margin-top: 10px; }
+    #ended .sub2 { font-size: 18px; margin-top: 6px; }
+    .top5 { margin-top: 18px; padding: 16px 18px; }
+    .top5 h2 { font-size: 20px; margin-bottom: 8px; }
+    .top5 ol { list-style: none; margin: 0; padding: 0; }
+    .top5 li { display: flex; align-items: center; gap: 10px; padding: 7px 2px; font-size: 19px;
+               border-bottom: 1.5px dashed rgba(139, 111, 214, 0.2); }
+    .top5 li:last-child { border-bottom: 0; }
+    .top5 .rk { width: 26px; text-align: center; font-family: var(--font-en); font-weight: 700; }
+    .top5 .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top5 .sc { font-family: var(--font-en); font-weight: 700; }
+    .top5 li.mine { color: var(--violet-deep); font-weight: 700; }
+    .top5 li.mine .nm { font-size: 21px; }
 
     /* ---------- 문제 화면 ---------- */
     #play.screen { padding-bottom: 10px; }
@@ -145,16 +161,21 @@
 
     <!-- ================= 끝 ================= -->
     <section id="ended" class="screen hidden">
-      <div class="big-msg" style="padding-top:40px">
+      <div class="big-msg" style="padding-top:26px">
         <div id="endAvatar"></div>
-        <h1 class="pop" style="margin-top:14px">게임 끝!</h1>
+        <div class="me-name" id="endName"></div>
       </div>
-      <div class="glass score-card">
-        <div class="lbl muted">내 점수</div>
-        <div class="num" id="myScore">0</div>
-        <div class="lbl">점</div>
+      <div class="glass score-card pop">
+        <div class="lbl muted">게임 끝! 나의 순위</div>
+        <div class="place"><span id="myRank">-</span><small>등</small></div>
+        <div class="sub1"><span id="myScore">0</span>점 · <span id="myTotal">0</span>명 중</div>
+        <div class="sub2 muted" id="myDetail"></div>
       </div>
-      <p class="muted" style="text-align:center;font-size:19px;margin-top:22px">선생님 화면에서 시상식을 함께 봐요!</p>
+      <div class="glass top5">
+        <h2>🏆 TOP 5</h2>
+        <ol id="top5"></ol>
+      </div>
+      <p class="muted" style="text-align:center;font-size:18px;margin-top:18px">선생님 화면에서 시상식을 함께 봐요!</p>
     </section>
   </div>
 
@@ -424,9 +445,23 @@
 
     async function showEnded() {
       $('endAvatar').replaceChildren(avatarEl({ id: me.player_id, avatar: me.avatar }, 96));
+      $('endName').textContent = me.name;
       show('ended');
-      const { data } = await db.from('players').select('*').eq('id', me.player_id).maybeSingle();
-      $('myScore').textContent = data ? String(data.score) : '0';
+      const { data, error } = await db.from('players').select('*').eq('room_id', me.room_id);
+      if (error || !data) return;
+      const list = sortPlayers(data);
+      const idx = list.findIndex((p) => p.id === me.player_id);
+      const mine = list[idx];
+      $('myRank').textContent = idx >= 0 ? String(idx + 1) : '-';
+      $('myScore').textContent = mine ? String(mine.score) : '0';
+      $('myTotal').textContent = String(list.length);
+      $('myDetail').textContent = mine ? `맞힌 문제 ${mine.correct}개 · 보너스 +${mine.bonus}` : '';
+      $('top5').replaceChildren(...list.slice(0, 5).map((p, i) =>
+        el('li', { class: p.id === me.player_id ? 'mine' : '' },
+          el('span', { class: 'rk' }, String(i + 1)),
+          avatarEl(p, 32),
+          el('span', { class: 'nm' }, p.name),
+          el('span', { class: 'sc' }, `${p.score}점`))));
     }
 
     $('relinkBtn').addEventListener('click', () => {
