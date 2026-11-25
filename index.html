@@ -1,27 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Who Is He? · 영어 퀴즈 게임</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Jua&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<style>
-  .home { max-width: 560px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; padding: 24px 18px; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
-  .home .glass { padding: 30px 24px; text-align: center; }
-  .home a { display: flex; align-items: center; justify-content: center; height: 84px; font-size: 28px; text-decoration: none; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>바른말 탐정단 · 맞춤법 실시간 퀴즈</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Jua&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    main { max-width: 760px; margin: 0 auto; padding: 56px 20px 40px; text-align: center; }
+    .logo { width: 96px; height: 96px; margin: 0 auto 20px; border-radius: 28px;
+            background: linear-gradient(180deg, #A98FEA, #6A4BC8);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 12px 30px rgba(91, 63, 176, 0.35); }
+    h1 { font-size: 56px; color: var(--violet-deep); }
+    .sub { font-size: 22px; margin-top: 8px; }
+    .hero { padding: 40px 28px; margin-top: 28px; }
+    .tags { justify-content: center; margin: 4px 0 28px; }
+    .tags .pill { background: rgba(255,255,255,0.72); }
+    .go { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .go a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+            height: 150px; text-decoration: none; font-size: 28px; }
+    .go a small { font-size: 17px; opacity: 0.85; }
+    .go a span.icon { font-size: 40px; }
+    .note { margin-top: 22px; font-size: 16px; }
+    @media (max-width: 560px) {
+      h1 { font-size: 42px; }
+      .go { grid-template-columns: 1fr; }
+      .go a { height: 120px; }
+    }
+  </style>
 </head>
 <body>
-<main class="home">
-  <div class="glass">
-    <b class="en" style="font-size:48px;font-weight:700;display:block">Who Is He?</b>
-    <span class="muted" style="font-size:20px">3학년 영어 10단원 · 실시간 퀴즈 게임</span>
-  </div>
-  <a class="jelly btn-violet" href="teacher.html">선생님 화면</a>
-  <a class="jelly btn-amber" href="student.html">학생으로 들어가기</a>
-</main>
+  <main>
+    <div class="logo pop" aria-hidden="true">
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round">
+        <circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/>
+      </svg>
+    </div>
+    <h1>바른말 탐정단</h1>
+    <p class="sub muted">6학년 국어 · 맞춤법 실시간 퀴즈</p>
+
+    <section class="glass hero">
+      <div class="row tags">
+        <span class="pill">맞춤법</span>
+        <span class="pill">띄어쓰기</span>
+        <span class="pill">표준어</span>
+        <span class="pill">헷갈리는 말</span>
+        <span class="pill">외래어</span>
+      </div>
+      <div class="go">
+        <a class="jelly btn-violet" href="teacher.html">
+          <span class="icon" aria-hidden="true">🧑‍🏫</span>
+          선생님
+          <small>방 만들기 · 프로젝터 화면</small>
+        </a>
+        <a class="jelly btn-amber" href="student.html">
+          <span class="icon" aria-hidden="true">📱</span>
+          학생
+          <small>방 번호로 들어가기</small>
+        </a>
+      </div>
+      <p class="note muted">학생은 선생님 화면의 QR 코드를 휴대폰 카메라로 찍으면 바로 들어올 수 있어요.<br>이름 대신 별명을 써도 좋아요.</p>
+    </section>
+  </main>
 </body>
 </html>
